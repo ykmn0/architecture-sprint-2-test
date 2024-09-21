@@ -2,7 +2,7 @@ services:
 
   # Configuration server for MongoDB sharding
   configSrv:
-    image: mongo:latest
+    image: dh-mirror.gitverse.ru/mongo:latest
     container_name: configSrv
     restart: always
     ports:
@@ -28,7 +28,7 @@ services:
 
   # First shard (replica set) for MongoDB sharding
   shard1:
-    image: mongo:latest
+    image: dh-mirror.gitverse.ru/mongo:latest
     container_name: shard1
     restart: always
     ports:
@@ -54,7 +54,7 @@ services:
 
   # Second shard (replica set) for MongoDB sharding
   shard2:
-    image: mongo:latest
+    image: dh-mirror.gitverse.ru/mongo:latest
     container_name: shard2
     restart: always
     ports:
@@ -80,7 +80,7 @@ services:
   
   # MongoDB router (mongos) for directing queries to the correct shards
   mongos_router:
-    image: mongo:latest
+    image: dh-mirror.gitverse.ru/mongo:latest
     container_name: mongos_router
     restart: always
     ports:
