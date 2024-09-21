@@ -19,3 +19,5 @@ for (var i = 0; i < 1000; i++) {
 var count = db.helloDoc.countDocuments();
 print("Total documents in 'helloDoc' collection: " + count);
 EOF
+
+echo "Shards added and test data inserted."

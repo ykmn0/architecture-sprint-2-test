@@ -2,7 +2,7 @@ services:
 
   # Configuration server for MongoDB sharding
   configSrv:
-    image: mongo:latest
+    image: dh-mirror.gitverse.ru/mongo:latest
     container_name: configSrv
     restart: always
     ports:
@@ -20,119 +20,227 @@ services:
         "--bind_ip_all",  # Allow connections from any IP
         "--port",
         "27017"
-      ] 
+      ]
     healthcheck:
-      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]  # Check if MongoDB is responding
-      interval: 5s  # Healthcheck interval
-      start_period: 10s  # Delay before first healthcheck
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
 
-  # First shard (replica set) for MongoDB sharding
-  shard1:
-    image: mongo:latest
-    container_name: shard1
+  # Shard 1 replica set
+  shard1-node1:
+    image: dh-mirror.gitverse.ru/mongo:latest
+    container_name: shard1-node1
     restart: always
     ports:
       - "27018:27018"
     networks:
       app-network:
-        ipv4_address: 173.17.0.9
+        ipv4_address: 173.17.0.11
     volumes:
-      - shard1-data:/data/db
+      - shard1-node1-data:/data/db
     command:
       [
-        "--shardsvr",  # Run as shard server
-        "--replSet",  # Specify the replica set name
+        "--shardsvr", 
+        "--replSet",
         "shard1",
-        "--bind_ip_all",  # Allow connections from any IP
+        "--bind_ip_all",
         "--port",
         "27018"
       ]
     healthcheck:
-      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]  # Check if MongoDB is responding
-      interval: 5s  # Healthcheck interval
-      start_period: 10s  # Delay before first healthcheck
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
 
-  # Second shard (replica set) for MongoDB sharding
-  shard2:
-    image: mongo:latest
-    container_name: shard2
+  shard1-node2:
+    image: dh-mirror.gitverse.ru/mongo:latest
+    container_name: shard1-node2
     restart: always
     ports:
       - "27019:27019"
     networks:
       app-network:
-        ipv4_address: 173.17.0.8
+        ipv4_address: 173.17.0.12
     volumes:
-      - shard2-data:/data/db
+      - shard1-node2-data:/data/db
     command:
       [
-        "--shardsvr",  # Run as shard server
-        "--replSet",  # Specify the replica set name
-        "shard2",
-        "--bind_ip_all",  # Allow connections from any IP
+        "--shardsvr", 
+        "--replSet",
+        "shard1",
+        "--bind_ip_all",
         "--port",
         "27019"
       ]
     healthcheck:
-      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]  # Check if MongoDB is responding
-      interval: 5s  # Healthcheck interval
-      start_period: 10s  # Delay before first healthcheck
-  
-  # MongoDB router (mongos) for directing queries to the correct shards
-  mongos_router:
-    image: mongo:latest
-    container_name: mongos_router
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  shard1-node3:
+    image: dh-mirror.gitverse.ru/mongo:latest
+    container_name: shard1-node3
     restart: always
     ports:
       - "27020:27020"
     networks:
       app-network:
-        ipv4_address: 173.17.0.7
+        ipv4_address: 173.17.0.13
+    volumes:
+      - shard1-node3-data:/data/db
     command:
       [
-        "mongos",  # Run MongoDB in router mode
-        "--configdb", 
-        "config_server/configSrv:27017",  # Connect to the configuration server
-        "--bind_ip_all",  # Allow connections from any IP
+        "--shardsvr", 
+        "--replSet",
+        "shard1",
+        "--bind_ip_all",
         "--port",
         "27020"
       ]
-    depends_on:
-      - configSrv  # Ensure the configuration server starts first
-      - shard1  # Ensure shard1 starts before mongos
-      - shard2  # Ensure shard2 starts before mongos
     healthcheck:
-      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]  # Check if MongoDB is responding
-      interval: 5s  # Healthcheck interval
-      start_period: 10s  # Delay before first healthcheck
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
 
-  # API service that interacts with MongoDB using pymongo
+  # Shard 2 replica set
+  shard2-node1:
+    image: dh-mirror.gitverse.ru/mongo:latest
+    container_name: shard2-node1
+    restart: always
+    ports:
+      - "27021:27021"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.14
+    volumes:
+      - shard2-node1-data:/data/db
+    command:
+      [
+        "--shardsvr", 
+        "--replSet",
+        "shard2",
+        "--bind_ip_all",
+        "--port",
+        "27021"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  shard2-node2:
+    image: dh-mirror.gitverse.ru/mongo:latest
+    container_name: shard2-node2
+    restart: always
+    ports:
+      - "27022:27022"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.15
+    volumes:
+      - shard2-node2-data:/data/db
+    command:
+      [
+        "--shardsvr", 
+        "--replSet",
+        "shard2",
+        "--bind_ip_all",
+        "--port",
+        "27022"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  shard2-node3:
+    image: dh-mirror.gitverse.ru/mongo:latest
+    container_name: shard2-node3
+    restart: always
+    ports:
+      - "27023:27023"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.16
+    volumes:
+      - shard2-node3-data:/data/db
+    command:
+      [
+        "--shardsvr", 
+        "--replSet",
+        "shard2",
+        "--bind_ip_all",
+        "--port",
+        "27023"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  # MongoDB router (mongos)
+  mongos_router:
+    image: dh-mirror.gitverse.ru/mongo:latest
+    container_name: mongos_router
+    restart: always
+    ports:
+      - "27024:27024"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.7
+    command:
+      [
+        "mongos", 
+        "--configdb", 
+        "config_server/configSrv:27017",
+        "--bind_ip_all",  
+        "--port",
+        "27024"
+      ]
+    depends_on:
+      - configSrv
+      - shard1-node1
+      - shard1-node2
+      - shard1-node3
+      - shard2-node1
+      - shard2-node2
+      - shard2-node3
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  # API service
   pymongo_api:
     container_name: pymongo_api
     build: 
-      context: api_app  # Directory containing the Dockerfile for building the API image
-      dockerfile: Dockerfile  # Dockerfile to build the API service
-    image: kazhem/pymongo_api:1.0.0  # Name of the built image
+      context: api_app
+      dockerfile: Dockerfile
+    image: kazhem/pymongo_api:1.0.0
     depends_on:
-      - mongos_router  # Ensure mongos starts before the API
+      - mongos_router
     ports:
       - "8080:8080"
     networks:
       app-network:
         ipv4_address: 173.17.0.6
     environment:
-      MONGODB_URL: "mongodb://mongos_router:27020"  # MongoDB connection string using mongos
-      MONGODB_DATABASE_NAME: "somedb"  # Name of the database to use
+      MONGODB_URL: "mongodb://mongos_router:27024"
+      MONGODB_DATABASE_NAME: "somedb"
 
 networks:
   app-network:
-    driver: bridge  # Use bridge network driver
+    driver: bridge
     ipam:
       driver: default
       config:
-        - subnet: 173.17.0.0/16  # Define a custom subnet for the network
+        - subnet: 173.17.0.0/16
 
 volumes:
-  config-data:  # Volume for storing config server data
-  shard1-data:  # Volume for storing shard1 data
-  shard2-data:  # Volume for storing shard2 data
+  config-data:
+  shard1-node1-data:
+  shard1-node2-data:
+  shard1-node3-data:
+  shard2-node1-data:
+  shard2-node2-data:
+  shard2-node3-data:

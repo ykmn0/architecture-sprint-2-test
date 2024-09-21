@@ -3,9 +3,9 @@
 # Initialize the mongos router, add shards, and insert test data
 echo "Initializing mongos router, adding shards, and inserting test data..."
 
-docker compose exec -T mongos_router mongosh --port 27020 <<EOF
-sh.addShard("shard1/shard1:27018");
-sh.addShard("shard2/shard2:27019");
+docker compose exec -T mongos_router mongosh --port 27024 <<EOF
+sh.addShard("shard1/shard1-node1:27018");
+sh.addShard("shard2/shard2-node1:27021");
 
 sh.enableSharding("somedb");
 sh.shardCollection("somedb.helloDoc", { "name" : "hashed" });
@@ -19,3 +19,5 @@ for (var i = 0; i < 1000; i++) {
 var count = db.helloDoc.countDocuments();
 print("Total documents in 'helloDoc' collection: " + count);
 EOF
+
+echo "Shards added and test data inserted."
