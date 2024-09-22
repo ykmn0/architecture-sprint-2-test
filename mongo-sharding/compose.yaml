@@ -22,7 +22,7 @@ services:
         "27017"
       ] 
     healthcheck:
-      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]  # Check if MongoDB is responding
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]  # Check if MongoDB is responding
       interval: 5s  # Healthcheck interval
       start_period: 10s  # Delay before first healthcheck
 
@@ -48,7 +48,7 @@ services:
         "27018"
       ]
     healthcheck:
-      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]  # Check if MongoDB is responding
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]  # Check if MongoDB is responding
       interval: 5s  # Healthcheck interval
       start_period: 10s  # Delay before first healthcheck
 
@@ -74,7 +74,7 @@ services:
         "27019"
       ]
     healthcheck:
-      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]  # Check if MongoDB is responding
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]  # Check if MongoDB is responding
       interval: 5s  # Healthcheck interval
       start_period: 10s  # Delay before first healthcheck
   
@@ -102,7 +102,7 @@ services:
       - shard1  # Ensure shard1 starts before mongos
       - shard2  # Ensure shard2 starts before mongos
     healthcheck:
-      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]  # Check if MongoDB is responding
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]  # Check if MongoDB is responding
       interval: 5s  # Healthcheck interval
       start_period: 10s  # Delay before first healthcheck
 
