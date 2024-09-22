@@ -8,7 +8,10 @@
 docker compose up -d
 ```
 
-Заполняем mongodb данными
+Запускаем скрипт из соответствующей папки:
+Задание 2. Шардирование - mongo-sharding;
+Задание 3. Репликация   - mongo-sharding-repl;
+Задание 4. Кэширование  - sharding-repl-cache.
 
 ```shell
 ./scripts/mongo-init.sh
@@ -33,3 +36,9 @@ curl --silent http://ifconfig.me
 ## Доступные эндпоинты
 
 Список доступных эндпоинтов, swagger http://<ip виртуальной машины>:8080/docs
+
+
+# Задания 1, 5 и 6.
+Файл итоговой схемы находится в корне репозитория - файл sprint-2-schema.png.
+
+Отображение информации о MongoDB и статус использования кэша в формате JSON - файл sprint-2-result.jpg
