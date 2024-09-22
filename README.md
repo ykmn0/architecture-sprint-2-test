@@ -9,8 +9,11 @@ docker compose up -d
 ```
 
 Запускаем скрипт из соответствующей папки:
+
 Задание 2. Шардирование - mongo-sharding;
+
 Задание 3. Репликация   - mongo-sharding-repl;
+
 Задание 4. Кэширование  - sharding-repl-cache.
 
 ```shell
