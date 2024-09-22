@@ -1,0 +1,138 @@
+services:
+
+  # Configuration server for MongoDB sharding
+  configSrv:
+    image: dh-mirror.gitverse.ru/mongo:latest
+    container_name: configSrv
+    restart: always
+    ports:
+      - "27017:27017"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.10
+    volumes:
+      - config-data:/data/db
+    command:
+      [
+        "--configsvr",  # Run as configuration server
+        "--replSet",  # Specify the replica set name
+        "config_server",
+        "--bind_ip_all",  # Allow connections from any IP
+        "--port",
+        "27017"
+      ] 
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]  # Check if MongoDB is responding
+      interval: 5s  # Healthcheck interval
+      start_period: 10s  # Delay before first healthcheck
+
+  # First shard (replica set) for MongoDB sharding
+  shard1:
+    image: dh-mirror.gitverse.ru/mongo:latest
+    container_name: shard1
+    restart: always
+    ports:
+      - "27018:27018"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.9
+    volumes:
+      - shard1-data:/data/db
+    command:
+      [
+        "--shardsvr",  # Run as shard server
+        "--replSet",  # Specify the replica set name
+        "shard1",
+        "--bind_ip_all",  # Allow connections from any IP
+        "--port",
+        "27018"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]  # Check if MongoDB is responding
+      interval: 5s  # Healthcheck interval
+      start_period: 10s  # Delay before first healthcheck
+
+  # Second shard (replica set) for MongoDB sharding
+  shard2:
+    image: dh-mirror.gitverse.ru/mongo:latest
+    container_name: shard2
+    restart: always
+    ports:
+      - "27019:27019"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.8
+    volumes:
+      - shard2-data:/data/db
+    command:
+      [
+        "--shardsvr",  # Run as shard server
+        "--replSet",  # Specify the replica set name
+        "shard2",
+        "--bind_ip_all",  # Allow connections from any IP
+        "--port",
+        "27019"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]  # Check if MongoDB is responding
+      interval: 5s  # Healthcheck interval
+      start_period: 10s  # Delay before first healthcheck
+  
+  # MongoDB router (mongos) for directing queries to the correct shards
+  mongos_router:
+    image: dh-mirror.gitverse.ru/mongo:latest
+    container_name: mongos_router
+    restart: always
+    ports:
+      - "27020:27020"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.7
+    command:
+      [
+        "mongos",  # Run MongoDB in router mode
+        "--configdb", 
+        "config_server/configSrv:27017",  # Connect to the configuration server
+        "--bind_ip_all",  # Allow connections from any IP
+        "--port",
+        "27020"
+      ]
+    depends_on:
+      - configSrv  # Ensure the configuration server starts first
+      - shard1  # Ensure shard1 starts before mongos
+      - shard2  # Ensure shard2 starts before mongos
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]  # Check if MongoDB is responding
+      interval: 5s  # Healthcheck interval
+      start_period: 10s  # Delay before first healthcheck
+
+  # API service that interacts with MongoDB using pymongo
+  pymongo_api:
+    container_name: pymongo_api
+    build: 
+      context: api_app  # Directory containing the Dockerfile for building the API image
+      dockerfile: Dockerfile  # Dockerfile to build the API service
+    image: kazhem/pymongo_api:1.0.0  # Name of the built image
+    depends_on:
+      - mongos_router  # Ensure mongos starts before the API
+    ports:
+      - "8080:8080"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.6
+    environment:
+      MONGODB_URL: "mongodb://mongos_router:27020"  # MongoDB connection string using mongos
+      MONGODB_DATABASE_NAME: "somedb"  # Name of the database to use
+
+networks:
+  app-network:
+    driver: bridge  # Use bridge network driver
+    ipam:
+      driver: default
+      config:
+        - subnet: 173.17.0.0/16  # Define a custom subnet for the network
+
+volumes:
+  config-data:  # Volume for storing config server data
+  shard1-data:  # Volume for storing shard1 data
+  shard2-data:  # Volume for storing shard2 data
